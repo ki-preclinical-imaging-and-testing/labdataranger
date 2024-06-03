@@ -1,0 +1,6 @@
+{
+    "uri": "bolt://localhost",
+    "port": 7687, 
+    "username": "your username",
+    "password": "your password"
+}
