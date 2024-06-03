@@ -9,8 +9,8 @@ setup(
         'pandas',
         'networkx',
         'tqdm',
-        'Pillow',  # For handling TIFF files
-        'neomodel'  # For Neo4j ORM
+        'Pillow', 
+        'neomodel' 
     ],
     entry_points={
         'console_scripts': [
@@ -22,7 +22,7 @@ setup(
     description='A tool for managing and surveying lab metadata using its file tree structure.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/ki-preclinical-imaging-and-testing/labdataforester',
+    url='https://github.com/ki-preclinical-imaging-and-testing/labdataranger',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
