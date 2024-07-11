@@ -17,11 +17,17 @@ def dataframe(query, config_file='db_config.json', database='neo4j', column_map=
     with neo4j.GraphDatabase.driver(config['uri'],
                                     auth=(config['username'],
                                           config['password'])) as driver:
-        _df = driver.execute_query(
-            query, 
-            database_=database,
-            result_transformer_=neo4j.Result.to_df
-        )
+        if database:
+            _df = driver.execute_query(
+                query, 
+                database_=database,
+                result_transformer_=neo4j.Result.to_df
+            )
+        else:
+            _df = driver.execute_query(
+                query, 
+                result_transformer_=neo4j.Result.to_df
+            )
 
     _df.title = f"Results for query: {query[:100]}{'...' if len(query) > 100 else ''}"
 

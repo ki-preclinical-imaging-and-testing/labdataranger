@@ -38,6 +38,63 @@ def convert_chars_for_neo4j(s):
     return s
 
 
+def process_directory(
+    base_directory_path,
+    skips=['System Volume Information','$RECYCLE.BIN'],
+    checkpoint_fstr='.labdataranger.pkl',
+    log_fstr='.labdataranger.out',
+    verbose=False):
+    
+    checkpoint_file = os.path.join(base_directory_path, checkpoint_fstr)
+    log_file = os.path.join(base_directory_path, log_fstr)
+    
+    if verbose:
+        print()
+        print(f"      Base: {base_directory_path}")
+        print(f"Checkpoint: {checkpoint_fstr}")
+        print(f"       Log: {checkpoint_fstr}")
+        print()
+
+    ft = FileTree(
+        base_directory_path,
+        skips, 
+        log_file=log_file, 
+        checkpoint_file=checkpoint_file        
+    )
+    ft.collect_file_tree()
+    ft.save_state(checkpoint_file)
+
+    return ft
+
+
+def process_parallel(base_path, 
+                     max_workers=56, 
+                     verbose=False):
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+    
+        futures = {
+            executor.submit(process_directory, base_dir): {
+                'base': base_dir, 'name': dir_name
+            } for dir_name, base_dir 
+            in get_base_dirs(base_path).items()
+        }
+        
+    
+        for future in concurrent.futures.as_completed(futures):
+        
+            _dir = futures[future]
+            
+            try:
+                result = future.result()
+                if verbose:
+                    print(f"Processing completed for: {result.base_directory}")
+                    print(f"                          {_dir['name']}")
+                    
+            except Exception as exc:
+                print(f"Error processing {_dir['base']}: {exc}")
+
+
 class FileTree:
 
     def __init__(self, base_directory, skips=None, verbose=False, log_file=None, checkpoint_file=None):

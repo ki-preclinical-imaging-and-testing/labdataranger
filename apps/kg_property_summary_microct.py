@@ -1,7 +1,7 @@
 import streamlit as st
 from neo4j import GraphDatabase
 import pandas as pd
-import ..labdataranger as ldr
+import .labdataranger as ldr
 
 db_config = ldr.query.get_db_config()
 uri = f"{db_config['uri']}:{db_config['port']}"

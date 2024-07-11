@@ -1,11 +1,13 @@
 import logging
 from tqdm import tqdm
-from .survey import format_property_key
+from pathlib import Path
 from neomodel import db, config
 from .query import get_db_config
+from .survey import format_property_key, get_base_dirs, FileTree
+from .model import build_classes
 
 
-def neomodel_db_config(config_file='db_config.json', database='neo4j'):
+def neomodel_db_config(config_file='db_config.json', database=None):
     _config_file = get_db_config(config_file)
     protocol = _config_file['uri'].split(':')[0]
     hostname = _config_file['uri'].split(':')[1].split('/')[0]
@@ -13,7 +15,10 @@ def neomodel_db_config(config_file='db_config.json', database='neo4j'):
     username = _config_file['username']
     password = _config_file['password']
     try:
-        config.DATABASE_URL = f'{protocol}://{username}:{password}@{hostname}:{port}/{database}'
+        if database:
+            config.DATABASE_URL = f'{protocol}://{username}:{password}@{hostname}:{port}/{database}'
+        else:
+            config.DATABASE_URL = f'{protocol}://{username}:{password}@{hostname}:{port}'
     except Exception as e:
         print(f"ERROR: Database config failed with Exception {e}")
 
@@ -83,3 +88,70 @@ def push_to_neo4j(nx_graph, class_map, log_file='push.out'):
 
     print("Graph loading complete!")
     return node_map
+
+
+def push_tree_to_db(base_path, checkpoint_fstr='.labdataranger.pkl'):
+    base_path = Path(base_path)
+    print(base_path)
+    ft = FileTree(
+        base_path, 
+        checkpoint_file=base_path.joinpath(checkpoint_fstr)
+    )    
+    class_map, class_dict = build_classes(ft.graph)
+    try:
+        node_map = push_to_neo4j(ft.graph, class_map)
+    except: 
+        print(f"ERROR: {base_path.name} filetree could not be loaded")
+
+
+def push_forest_to_db(base_path, 
+                      checkpoint_fstr='.labdataranger.pkl'):
+    
+    for dir_name, base_dir in get_base_dirs(base_path).items():
+        push_tree_to_db(base_dir, checkpoint_fstr=checkpoint_fstr)
+        # ft = FileTree(base_dir, checkpoint_file=checkpoint)    
+        # class_map, class_dict = build_classes(ft.graph)
+        # try:
+        #     node_map = push_to_neo4j(ft.graph, class_map)
+        # except: 
+        #     print(f"ERROR: {dir_name} filetree could not be loaded")
+
+
+
+def create_and_connect_folders(parent_folder_path, 
+                               database=None,
+                               config_file='db_config.json'):
+
+    db_config = get_db_config(config_file=config_file)
+    uri = f"{db_config['uri']}:{db_config['port']}"
+    username = db_config['username']
+    password = db_config['password']
+    
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    parent_folder_name = os.path.basename(parent_folder_path.rstrip('/'))    
+
+    query = """
+        MERGE (parent:Folder {filepath: $parentFolderPath, name: $parentFolderName})
+        WITH parent
+        MATCH (subfolder:Folder)
+        WHERE subfolder.filepath STARTS WITH $parentFolderPath + '/'
+          AND NOT (subfolder)<-[:CONTAINS_FOLDER]-(:Folder)
+          AND subfolder.filepath <> $parentFolderPath
+        MERGE (parent)-[:CONTAINS_FOLDER]->(subfolder)
+        RETURN parent, subfolder
+    """
+    
+    with driver.session(database=database) as session:
+        
+        result = session.run(query, 
+                             parentFolderPath=parent_folder_path,
+                             parentFolderName=parent_folder_name)
+        
+        print("Related Subfolders to Base Folder")
+        for record in result:
+            print()
+            print(f"  Parent Folder: {record['parent']['filepath']}")
+            print(f"      Subfolder: {record['subfolder']['filepath']}")
+            print()
+            
+    driver.close()
