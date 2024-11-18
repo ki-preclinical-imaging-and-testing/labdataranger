@@ -1,0 +1,3 @@
+[submodule "labdataranger/metadata__scan"]
+	path = labdataranger/metadata__scan
+	url = git@github.com:ki-preclinical-imaging-and-testing/metadata__scan.git
