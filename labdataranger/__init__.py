@@ -1,4 +1,2 @@
-from . import survey
-from . import model
-from . import store
-from . import query
+from . import graph
+from .graph import query
