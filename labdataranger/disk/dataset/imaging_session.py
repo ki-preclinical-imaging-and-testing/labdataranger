@@ -1,10 +1,16 @@
+import argparse
 import yaml
 import pandas as pd
 import json
 from collections import Counter
-from labdataranger.disk.dataset.dispatcher import extract_metadata
+from labdataranger.disk.dataset.scan.router import extract_metadata
+
 
 class ImagingSessionMetadata:
+    """
+    Handles metadata extraction, loading, and processing for imaging sessions.
+    """
+
     def __init__(self, path):
         """
         Initializes an ImagingSessionMetadata instance with a specified path.
@@ -31,7 +37,7 @@ class ImagingSessionMetadata:
     def load_or_extract_metadata(self, path):
         """
         Loads metadata from YAML if the path is a YAML file.
-        Otherwise, extracts metadata based on file type and stores in self.metadata.
+        Otherwise, extracts metadata based on file type and stores it in self.metadata.
         """
         if path.endswith(".yaml"):
             self.load_metadata_from_yaml(path)
@@ -109,22 +115,14 @@ class ImagingSessionMetadata:
             return tuple(self.make_hashable(subitem) for subitem in item)
         return item
 
-    def print_summary(self):
-        """
-        Prints a JSON-formatted summary.
-        """
-        print(json.dumps(self.summarize_unique_values(), indent=4))
-
     def process_metadata(self, output, list_filenames=False, attribute=None, list_attributes=False,
                          summarize=False, summarize_with_counts=False, return_as="dict"):
         """
         Processes metadata by handling print, save, or return options.
         """
-        # Return metadata if specified
         if output == "return":
             return json.dumps(self.metadata, indent=4) if return_as == "json" else self.metadata
 
-        # Print metadata based on user options
         if output == "print":
             if list_filenames:
                 print("Filenames:")
@@ -139,10 +137,42 @@ class ImagingSessionMetadata:
                 print("\n".join(attributes))
             elif summarize or summarize_with_counts:
                 summary = self.summarize_unique_values(with_counts=summarize_with_counts)
-                self.print_summary(summary)
+                print(json.dumps(summary, indent=4))
             else:
                 print(self.metadata)
         else:
-            # Save metadata to YAML if output is not "print"
             self.save_metadata_to_yaml(output)
             print(f"Metadata extracted and saved to {output}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Extract or load metadata from image files or a YAML file.")
+    parser.add_argument("path", type=str, help="Path to the image file, directory of image files, or YAML file.")
+    parser.add_argument("output", type=str, help="Path for the output YAML file, 'print' to display metadata, or 'return' to return metadata.")
+    parser.add_argument("--list-filenames", action="store_true", help="Print all filenames in the metadata.")
+    parser.add_argument("--attribute", type=str, help="Print all filenames and a specific attribute if available.")
+    parser.add_argument("--list-attributes", action="store_true", help="Print all unique attributes across files.")
+    parser.add_argument("--summarize", action="store_true", help="Print a summary of unique values for each attribute.")
+    parser.add_argument("--summarize-with-counts", action="store_true", help="Print a summary with counts of unique values for each attribute.")
+    parser.add_argument("--return-as", choices=["json", "dict"], default="dict", help="Specify return format if output is 'return'.")
+
+    args = parser.parse_args()
+
+    session = ImagingSessionMetadata(path=args.path)
+
+    result = session.process_metadata(
+        output=args.output,
+        list_filenames=args.list_filenames,
+        attribute=args.attribute,
+        list_attributes=args.list_attributes,
+        summarize=args.summarize,
+        summarize_with_counts=args.summarize_with_counts,
+        return_as=args.return_as
+    )
+
+    if args.output == "return" and args.return_as == "json":
+        print(result)
+
+
+if __name__ == "__main__":
+    main()

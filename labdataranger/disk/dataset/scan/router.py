@@ -15,7 +15,6 @@ EXTRACTOR_FUNCTIONS = {
     # Future additions can go here, e.g., ".jpg": extract_jpg_metadata
 }
 
-
 def get_extractor_function(file_extension):
     """
     Returns the appropriate extraction function based on file extension.

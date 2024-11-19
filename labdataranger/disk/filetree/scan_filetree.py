@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from labdataranger.disk.dataset.metadata__session import ImagingSessionMetadata
+from labdataranger.disk.dataset.imaging_session import ImagingSessionMetadata
 
 # def scan_filetree_with_metadata(base_dir, workers=4):
 #     """
