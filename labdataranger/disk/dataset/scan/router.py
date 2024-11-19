@@ -1,9 +1,9 @@
 import os
 from tqdm import tqdm
-from labdataranger.disk.dataset.scan.formats.dicom_extractor import extract_dicom_metadata
-from labdataranger.disk.dataset.scan.formats.nifti_extractor import extract_nifti_metadata
-from labdataranger.disk.dataset.scan.formats.tiff_extractor import extract_tiff_metadata
-from labdataranger.disk.dataset.scan.formats.bruker_log_extractor import parse_bruker_log
+from labdataranger.disk.dataset.scan.formats.dicom import extract_dicom_metadata
+from labdataranger.disk.dataset.scan.formats.nifti import extract_nifti_metadata
+from labdataranger.disk.dataset.scan.formats.tiff import extract_tiff_metadata
+from labdataranger.disk.dataset.scan.formats.log import parse_bruker_log
 
 # Mapping of file extensions to extractor functions for easy extensibility
 EXTRACTOR_FUNCTIONS = {
