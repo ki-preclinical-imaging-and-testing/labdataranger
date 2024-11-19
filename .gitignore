@@ -162,7 +162,7 @@ cython_debug/
 # VS Code
 .vscode/
 
-db_conf*.json
+db_conf.json
 
 network.html
 
