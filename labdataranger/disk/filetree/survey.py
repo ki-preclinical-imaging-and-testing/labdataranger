@@ -576,7 +576,7 @@ class FileTree:
             print(f"No graph file found at {graphml_file_name}.")
 
     def translate_for_graphml(self, graph):
-        """ Convert unsupported types in the graph to GraphML-friendly formats. """
+        """ Convert unsupported types in the graph to GraphML-friendly format. """
         temp_graph = graph.copy()
         for node, data in temp_graph.nodes(data=True):
             for key, value in list(data.items()):
@@ -601,7 +601,7 @@ class FileTree:
         return temp_graph
 
     def translate_from_graphml(self, graph):
-        """ Convert GraphML-friendly formats back to original types in the graph. """
+        """ Convert GraphML-friendly format back to original types in the graph. """
         for node, data in graph.nodes(data=True):
             for key, value in list(data.items()):
                 if value == "NoneType":

@@ -1,9 +1,9 @@
 import os
 from tqdm import tqdm
-from labdataranger.disk.dataset.scan.formats.dicom import extract_dicom_metadata
-from labdataranger.disk.dataset.scan.formats.nifti import extract_nifti_metadata
-from labdataranger.disk.dataset.scan.formats.tiff import extract_tiff_metadata
-from labdataranger.disk.dataset.scan.formats.log import parse_bruker_log
+from labdataranger.disk.dataset.scan.format.dicom import extract_dicom_metadata
+from labdataranger.disk.dataset.scan.format.nifti import extract_nifti_metadata
+from labdataranger.disk.dataset.scan.format.tiff import extract_tiff_metadata
+from labdataranger.disk.dataset.scan.format.bruker_log import parse_bruker_log
 
 # Mapping of file extensions to extractor functions for easy extensibility
 EXTRACTOR_FUNCTIONS = {
@@ -25,7 +25,7 @@ def get_extractor_function(file_extension):
 def extract_metadata(filepath):
     """
     Extracts metadata from a single file or directory.
-    - If a directory, determines if it contains Bruker files, generic TIFF files, or other formats.
+    - If a directory, determines if it contains Bruker files, generic TIFF files, or other format.
     - If a single file, applies the correct extraction function based on file type.
     """
     if os.path.isdir(filepath):
@@ -55,7 +55,7 @@ def extract_metadata_from_directory(directory):
         print("Detected Bruker series with TIFF and log files.")
         return extract_bruker_metadata(directory)
     else:
-        # Scan all files in the directory and scan metadata for supported formats
+        # Scan all files in the directory and scan metadata for supported format
         print("Scanning directory for supported file types.")
         return extract_metadata_from_directory_generic(directory)
 
