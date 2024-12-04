@@ -25,35 +25,33 @@ def save_queries(queries):
 
 # Streamlit Query Management Section
 def manage_queries(recall_query):
-    st.sidebar.subheader("Manage Recall Queries")
-
     # Load saved queries
     saved_queries = load_saved_queries()
 
     # Save current query
-    query_name = st.sidebar.text_input("Save Current Query As")
-    if st.sidebar.button("Save Query"):
+    query_name = st.text_input("Save Current Query As")
+    if st.button("Save Query"):
         if query_name:
             saved_queries[query_name] = recall_query
             save_queries(saved_queries)
-            st.sidebar.success(f"Query '{query_name}' saved successfully!")
+            st.success(f"Query '{query_name}' saved successfully!")
         else:
-            st.sidebar.error("Please provide a name for the query.")
+            st.error("Please provide a name for the query.")
 
     # Load a query
     if saved_queries:
-        selected_query_name = st.sidebar.selectbox("Load Saved Query", [""] + list(saved_queries.keys()), label_visibility="collapsed")
+        selected_query_name = st.selectbox("Load Saved Query", [""]
+                + list(saved_queries.keys()), label_visibility="visible")
         if selected_query_name:
             recall_query = saved_queries[selected_query_name]
-            st.sidebar.info(f"Loaded query: {selected_query_name}")
 
     # Delete a query
     if saved_queries:
-        delete_query_name = st.sidebar.selectbox("Delete Saved Query", [""] + list(saved_queries.keys()), label_visibility="collapsed", key="delete_query")
-        if delete_query_name and st.sidebar.button(f"Delete Query '{delete_query_name}'"):
+        delete_query_name = st.selectbox("Delete Saved Query", 
+                [""] + list(saved_queries.keys()), label_visibility="visible", key="delete_query")
+        if delete_query_name and st.button(f"Delete Query '{delete_query_name}'"):
             saved_queries.pop(delete_query_name, None)
             save_queries(saved_queries)
-            st.sidebar.success(f"Query '{delete_query_name}' deleted successfully!")
 
     return recall_query
 
@@ -78,7 +76,6 @@ def extract_schema(results):
     nodes = {label for triple in triples for label in (triple[0], triple[2])}
     return triples, nodes
 
-# Pyvis Graph Creation with Layout Options
 # Pyvis Graph Creation with Layout Options
 def create_pyvis_graph(triples, layout, physics_enabled):
     net = Network(notebook=False, height="750px", width="100%")
@@ -185,29 +182,27 @@ def fetch_nodes_by_label(session, label, with_clause):
 
 # Streamlit App
 def main():
-    st.sidebar.title("Neo4j Connection")
-
-    # Connection Details in Sidebar
-    uri = st.sidebar.text_input("Neo4j URI", "bolt://localhost:7687")
-    user = st.sidebar.text_input("Username", "neo4j")
-    password = st.sidebar.text_input("Password", type="password")
-
     if "connected" not in st.session_state:
         st.session_state.connected = False
 
     if "selected_db" not in st.session_state:
         st.session_state.selected_db = None
 
-    if st.sidebar.button("Connect"):
-        with st.spinner("Connecting to Neo4j..."):
-            try:
-                session = get_neo4j_session(uri, user, password)
-                st.session_state.session = session
-                st.session_state.connected = True
-                st.success("Connected!")
-            except Exception as e:
-                st.sidebar.error(f"Connection failed: {e}")
-                st.session_state.connected = False
+    with st.sidebar.expander("Neo4j Connection", expanded=True):
+        # Connection Details in Sidebar
+        uri = st.text_input("Neo4j URI", "bolt://localhost:7687")
+        user = st.text_input("Username", "neo4j")
+        password = st.text_input("Password", type="password")
+        if st.button("Connect"):
+            with st.spinner("Connecting to Neo4j..."):
+                try:
+                    session = get_neo4j_session(uri, user, password)
+                    st.session_state.session = session
+                    st.session_state.connected = True
+                    st.success("Connected!")
+                except Exception as e:
+                    st.sidebar.error(f"Connection failed: {e}")
+                    st.session_state.connected = False
 
     if st.session_state.connected:
         with st.spinner("Fetching available databases..."):
@@ -239,8 +234,13 @@ def main():
             on_change=update_recall_query,
         )
 
-        recall_query = manage_queries(st.session_state.recall_query)
-        st.session_state.recall_query = recall_query
+        with st.sidebar.expander("Manage Recall Queries", expanded=False):
+            recall_query = manage_queries(st.session_state.recall_query)
+            st.session_state.recall_query = recall_query
+            if st.button('Update'):
+                st.experimental_rerun()
+                st.success(f"Updated.'")
+
         sample_size = st.sidebar.number_input("Sample Size", min_value=1, value=100, step=10)
         include_all = st.sidebar.checkbox("Include All (No Limit)", value=False)
         layout = st.sidebar.radio("Schema Layout", ["Hierarchical", "Force-Directed"], index=0)
