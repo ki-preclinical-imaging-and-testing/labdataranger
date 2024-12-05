@@ -77,23 +77,24 @@ def main():
     if st.session_state.connected:
         page = st.sidebar.selectbox(
                 "Toolkit", 
-                ["Pull Dataset", "Extract Metadata", "Disambiguated Dataset", "Ambiguous Dataset"]
+                ["Pull Dataset Index", "Map to Schema", "Resolved Entities",
+                    "Unresolved Entities"]
                 )
 
-        if page == "Pull Dataset":
+        if page == "Pull Dataset Index":
             pull_dataset_page()
-        elif page == "Extract Metadata":
+        elif page == "Map to Schema":
             metadata_extraction_page()
-        elif page == "Disambiguated Dataset":
+        elif page == "Resolved Entities":
             disambiguated_page()
-        elif page == "Ambiguous Dataset":
+        elif page == "Unresolved Entities":
             ambiguous_page()
 
 
 
 # Pull Dataset Page
 def pull_dataset_page():
-    st.title("Pull Dataset")
+    st.title("Pull Dataset Index")
     st.write("Connect to the Neo4j database and fetch Scan data.")
 
     if st.session_state.connected:
