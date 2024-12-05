@@ -267,6 +267,7 @@ def main():
 
         # Graph Visualization
         if "cached_triples" in st.session_state:
+            st.title("Sample Schema")
             net = create_pyvis_graph(st.session_state.cached_triples, layout,
                     physics_enabled)
             net_html = net.generate_html()
